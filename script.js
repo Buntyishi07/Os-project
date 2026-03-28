@@ -5,10 +5,15 @@ function addProcess() {
   let arrival = parseInt(document.getElementById("arrival").value);
   let burst = parseInt(document.getElementById("burst").value);
 
+  if (isNaN(arrival) || isNaN(burst)) {
+    alert("Enter valid values");
+    return;
+  }
+
   processes.push({
     id: "P" + id++,
-    arrival,
-    burst,
+    arrival: arrival,
+    burst: burst,
     remaining: burst,
     completion: 0
   });
@@ -39,34 +44,59 @@ function updateTable() {
 
 function runRR() {
   let quantum = parseInt(document.getElementById("quantum").value);
+
+  if (isNaN(quantum) || quantum <= 0) {
+    alert("Enter valid Time Quantum");
+    return;
+  }
+
+  // Deep copy
+  let proc = processes.map(p => ({ ...p }));
+
   let time = 0;
   let queue = [];
   let gantt = [];
 
-  let remainingProcesses = [...processes];
+  // Sort by arrival time
+  proc.sort((a, b) => a.arrival - b.arrival);
 
-  while (remainingProcesses.length > 0 || queue.length > 0) {
+  let i = 0; // pointer for incoming processes
 
-    remainingProcesses.forEach((p, index) => {
-      if (p.arrival <= time) {
-        queue.push(p);
-        remainingProcesses.splice(index, 1);
-      }
-    });
+  while (queue.length > 0 || i < proc.length) {
 
+    // Add arrived processes to queue
+    while (i < proc.length && proc[i].arrival <= time) {
+      queue.push(proc[i]);
+      i++;
+    }
+
+    // If queue empty → jump time
     if (queue.length === 0) {
-      time++;
+      time = proc[i].arrival;
       continue;
     }
 
     let current = queue.shift();
 
     let execTime = Math.min(quantum, current.remaining);
-    gantt.push(current.id);
+
+    // Add to Gantt chart
+    gantt.push({
+      id: current.id,
+      start: time,
+      end: time + execTime
+    });
 
     time += execTime;
     current.remaining -= execTime;
 
+    // Add newly arrived during execution
+    while (i < proc.length && proc[i].arrival <= time) {
+      queue.push(proc[i]);
+      i++;
+    }
+
+    // If not finished → push back
     if (current.remaining > 0) {
       queue.push(current);
     } else {
@@ -75,19 +105,24 @@ function runRR() {
   }
 
   showGantt(gantt);
-  showResults();
+  showResults(proc);
 }
 
 function showGantt(gantt) {
   let div = document.getElementById("gantt");
   div.innerHTML = "";
 
-  gantt.forEach(p => {
-    div.innerHTML += `<div class="block">${p}</div>`;
+  gantt.forEach(block => {
+    div.innerHTML += `
+      <div class="block">
+        ${block.id}<br>
+        ${block.start}-${block.end}
+      </div>
+    `;
   });
 }
 
-function showResults() {
+function showResults(proc) {
   let totalWT = 0;
   let totalTAT = 0;
 
@@ -98,7 +133,7 @@ function showResults() {
       <th>TAT</th>
     </tr>`;
 
-  processes.forEach(p => {
+  proc.forEach(p => {
     let tat = p.completion - p.arrival;
     let wt = tat - p.burst;
 
@@ -114,8 +149,8 @@ function showResults() {
   });
 
   output += `</table>
-    <p>Average WT: ${(totalWT / processes.length).toFixed(2)}</p>
-    <p>Average TAT: ${(totalTAT / processes.length).toFixed(2)}</p>`;
+    <p>Average WT: ${(totalWT / proc.length).toFixed(2)}</p>
+    <p>Average TAT: ${(totalTAT / proc.length).toFixed(2)}</p>`;
 
   document.getElementById("results").innerHTML = output;
 }
