@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Round Robin Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Round Robin Scheduling Simulator</h1>
+
+<div class="container">
+  <input type="number" id="arrival" placeholder="Arrival Time">
+  <input type="number" id="burst" placeholder="Burst Time">
+  <button onclick="addProcess()">Add Process</button>
+</div>
+
+<div class="container">
+  <input type="number" id="quantum" placeholder="Time Quantum">
+  <button onclick="runRR()">Run Simulation</button>
+</div>
+
+<h3>Process Table</h3>
+<table id="processTable">
+  <tr>
+    <th>ID</th>
+    <th>Arrival</th>
+    <th>Burst</th>
+  </tr>
+</table>
+
+<h3>Gantt Chart</h3>
+<div id="gantt"></div>
+
+<h3>Results</h3>
+<div id="results"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
