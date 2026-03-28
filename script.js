@@ -7,7 +7,10 @@ function addProcess() {
   let arrival = parseInt(document.getElementById("arrival").value);
   let burst = parseInt(document.getElementById("burst").value);
 
-  if (isNaN(arrival) || isNaN(burst)) return alert("Enter valid values");
+  if (isNaN(arrival) || isNaN(burst)) {
+    alert("Enter valid values");
+    return;
+  }
 
   processes.push({
     id: "P" + id++,
@@ -39,7 +42,16 @@ function updateTable() {
   });
 }
 
+document.getElementById("algorithm").addEventListener("change", function () {
+  document.getElementById("quantum").disabled = this.value === "fcfs";
+});
+
 function runSimulation() {
+  if (processes.length === 0) {
+    alert("Add processes first");
+    return;
+  }
+
   let algo = document.getElementById("algorithm").value;
 
   if (algo === "rr") runRR();
@@ -48,11 +60,15 @@ function runSimulation() {
 
 function runRR() {
   let quantum = parseInt(document.getElementById("quantum").value);
-  if (!quantum) return alert("Enter Quantum");
+
+  if (!quantum || quantum <= 0) {
+    alert("Enter valid quantum");
+    return;
+  }
 
   let proc = processes.map(p => ({ ...p }));
-
   let time = 0, queue = [], gantt = [];
+
   proc.sort((a, b) => a.arrival - b.arrival);
 
   let i = 0;
@@ -64,7 +80,7 @@ function runRR() {
       i++;
     }
 
-    if (!queue.length) {
+    if (queue.length === 0) {
       time = proc[i].arrival;
       continue;
     }
@@ -82,8 +98,11 @@ function runRR() {
       i++;
     }
 
-    if (current.remaining > 0) queue.push(current);
-    else current.completion = time;
+    if (current.remaining > 0) {
+      queue.push(current);
+    } else {
+      current.completion = time;
+    }
   }
 
   display(gantt, proc);
@@ -121,7 +140,7 @@ function display(gantt, proc) {
       </div>
     `;
 
-    t.innerHTML += `<div style="width:60px">${block.start}</div>`;
+    t.innerHTML += `<div>${block.start}</div>`;
   });
 
   t.innerHTML += `<div>${gantt[gantt.length - 1].end}</div>`;
