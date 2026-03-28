@@ -1,12 +1,14 @@
 body {
-  font-family: 'Segoe UI';
-  background: #121212;
-  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
   text-align: center;
+  margin: 0;
 }
 
 h1 {
-  margin: 20px;
+  color: #38bdf8;
+  margin-top: 20px;
 }
 
 .card {
@@ -16,27 +18,33 @@ h1 {
 input, select {
   padding: 8px;
   margin: 5px;
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
+  outline: none;
 }
 
 button {
-  padding: 8px 15px;
-  background: #00adb5;
+  padding: 8px 16px;
+  background: #22c55e;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
+}
+
+button:hover {
+  background: #16a34a;
 }
 
 table {
   margin: auto;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
 td, th {
-  border: 1px solid white;
-  padding: 8px;
+  border: 1px solid #334155;
+  padding: 8px 12px;
 }
 
 #gantt {
@@ -47,14 +55,21 @@ td, th {
 
 .block {
   padding: 15px;
-  margin: 2px;
-  border-radius: 5px;
+  margin: 3px;
+  border-radius: 6px;
   color: black;
   font-weight: bold;
+  min-width: 60px;
 }
 
 #timeline {
   display: flex;
   justify-content: center;
+  margin-top: 5px;
+}
+
+#timeline div {
+  width: 66px;
+  text-align: center;
   font-size: 12px;
 }
