@@ -1,21 +1,21 @@
 let processes = [];
 let id = 1;
 
+const colors = ["#ff6b6b", "#ffd93d", "#6bcB77", "#4d96ff", "#c77dff"];
+
 function addProcess() {
   let arrival = parseInt(document.getElementById("arrival").value);
   let burst = parseInt(document.getElementById("burst").value);
 
-  if (isNaN(arrival) || isNaN(burst)) {
-    alert("Enter valid values");
-    return;
-  }
+  if (isNaN(arrival) || isNaN(burst)) return alert("Enter valid values");
 
   processes.push({
     id: "P" + id++,
-    arrival: arrival,
-    burst: burst,
+    arrival,
+    burst,
     remaining: burst,
-    completion: 0
+    completion: 0,
+    color: colors[(id - 2) % colors.length]
   });
 
   updateTable();
@@ -23,12 +23,9 @@ function addProcess() {
 
 function updateTable() {
   let table = document.getElementById("processTable");
+
   table.innerHTML = `
-    <tr>
-      <th>ID</th>
-      <th>Arrival</th>
-      <th>Burst</th>
-    </tr>
+    <tr><th>ID</th><th>Arrival</th><th>Burst</th></tr>
   `;
 
   processes.forEach(p => {
@@ -42,96 +39,101 @@ function updateTable() {
   });
 }
 
+function runSimulation() {
+  let algo = document.getElementById("algorithm").value;
+
+  if (algo === "rr") runRR();
+  else runFCFS();
+}
+
 function runRR() {
   let quantum = parseInt(document.getElementById("quantum").value);
+  if (!quantum) return alert("Enter Quantum");
 
-  if (isNaN(quantum) || quantum <= 0) {
-    alert("Enter valid Time Quantum");
-    return;
-  }
-
-  // Deep copy
   let proc = processes.map(p => ({ ...p }));
 
-  let time = 0;
-  let queue = [];
-  let gantt = [];
-
-  // Sort by arrival time
+  let time = 0, queue = [], gantt = [];
   proc.sort((a, b) => a.arrival - b.arrival);
 
-  let i = 0; // pointer for incoming processes
+  let i = 0;
 
-  while (queue.length > 0 || i < proc.length) {
+  while (queue.length || i < proc.length) {
 
-    // Add arrived processes to queue
     while (i < proc.length && proc[i].arrival <= time) {
       queue.push(proc[i]);
       i++;
     }
 
-    // If queue empty → jump time
-    if (queue.length === 0) {
+    if (!queue.length) {
       time = proc[i].arrival;
       continue;
     }
 
     let current = queue.shift();
+    let exec = Math.min(quantum, current.remaining);
 
-    let execTime = Math.min(quantum, current.remaining);
+    gantt.push({ ...current, start: time, end: time + exec });
 
-    // Add to Gantt chart
-    gantt.push({
-      id: current.id,
-      start: time,
-      end: time + execTime
-    });
+    time += exec;
+    current.remaining -= exec;
 
-    time += execTime;
-    current.remaining -= execTime;
-
-    // Add newly arrived during execution
     while (i < proc.length && proc[i].arrival <= time) {
       queue.push(proc[i]);
       i++;
     }
 
-    // If not finished → push back
-    if (current.remaining > 0) {
-      queue.push(current);
-    } else {
-      current.completion = time;
-    }
+    if (current.remaining > 0) queue.push(current);
+    else current.completion = time;
   }
 
-  showGantt(gantt);
+  display(gantt, proc);
+}
+
+function runFCFS() {
+  let proc = processes.map(p => ({ ...p }));
+  proc.sort((a, b) => a.arrival - b.arrival);
+
+  let time = 0, gantt = [];
+
+  proc.forEach(p => {
+    if (time < p.arrival) time = p.arrival;
+
+    gantt.push({ ...p, start: time, end: time + p.burst });
+
+    time += p.burst;
+    p.completion = time;
+  });
+
+  display(gantt, proc);
+}
+
+function display(gantt, proc) {
+  let g = document.getElementById("gantt");
+  let t = document.getElementById("timeline");
+
+  g.innerHTML = "";
+  t.innerHTML = "";
+
+  gantt.forEach(block => {
+    g.innerHTML += `
+      <div class="block" style="background:${block.color}">
+        ${block.id}
+      </div>
+    `;
+
+    t.innerHTML += `<div style="width:60px">${block.start}</div>`;
+  });
+
+  t.innerHTML += `<div>${gantt[gantt.length - 1].end}</div>`;
+
   showResults(proc);
 }
 
-function showGantt(gantt) {
-  let div = document.getElementById("gantt");
-  div.innerHTML = "";
-
-  gantt.forEach(block => {
-    div.innerHTML += `
-      <div class="block">
-        ${block.id}<br>
-        ${block.start}-${block.end}
-      </div>
-    `;
-  });
-}
-
 function showResults(proc) {
-  let totalWT = 0;
-  let totalTAT = 0;
+  let totalWT = 0, totalTAT = 0;
 
   let output = `<table>
-    <tr>
-      <th>ID</th>
-      <th>WT</th>
-      <th>TAT</th>
-    </tr>`;
+    <tr><th>ID</th><th>WT</th><th>TAT</th></tr>`;
 
   proc.forEach(p => {
     let tat = p.completion - p.arrival;
@@ -140,12 +142,11 @@ function showResults(proc) {
     totalWT += wt;
     totalTAT += tat;
 
-    output += `
-      <tr>
-        <td>${p.id}</td>
-        <td>${wt}</td>
-        <td>${tat}</td>
-      </tr>`;
+    output += `<tr>
+      <td>${p.id}</td>
+      <td>${wt}</td>
+      <td>${tat}</td>
+    </tr>`;
   });
 
   output += `</table>
