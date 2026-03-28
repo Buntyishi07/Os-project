@@ -1,0 +1,44 @@
+body {
+  font-family: Arial;
+  text-align: center;
+  background: #f4f4f4;
+}
+
+.container {
+  margin: 10px;
+}
+
+input {
+  padding: 8px;
+  margin: 5px;
+}
+
+button {
+  padding: 8px 15px;
+  background: blue;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+table {
+  margin: auto;
+  border-collapse: collapse;
+}
+
+td, th {
+  border: 1px solid black;
+  padding: 8px;
+}
+
+#gantt {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.block {
+  padding: 15px;
+  border: 1px solid black;
+  background: lightblue;
+}
